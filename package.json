@@ -1,0 +1,13 @@
+{
+  "name": "clearframe-backend",
+  "version": "1.0.0",
+  "description": "ClearFrame Backend API for batch image standardization",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
+
