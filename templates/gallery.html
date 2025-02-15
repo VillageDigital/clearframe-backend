@@ -3,19 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gallery | ClearFrame</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        .gallery { display: flex; flex-wrap: wrap; justify-content: center; }
-        .gallery img { margin: 10px; width: 200px; height: auto; border-radius: 8px; }
-    </style>
+    <title>Uploaded Images</title>
 </head>
 <body>
-    <h1>🖼️ Uploaded Images</h1>
-    <div class="gallery">
-        {% for image in images %}
-            <img src="{{ image }}" alt="Uploaded Image">
-        {% endfor %}
-    </div>
+    <h1>Uploaded Images</h1>
+    {% for image in images %}
+        <a href="{{ url_for('uploaded_file', filename=image) }}">
+            <img src="{{ url_for('uploaded_thumbnail', filename=image) }}" alt="{{ image }}" width="150">
+        </a>
+    {% endfor %}
 </body>
 </html>
