@@ -1,29 +1,15 @@
-@app.route("/upload", methods=["GET", "POST"])
-def upload_file():
-    if request.method == "GET":
-        return render_template("upload.html")  # Show the upload form
-
-    if "file" not in request.files:
-        return jsonify({"error": "No file part"}), 400
-
-    file = request.files["file"]
-
-    if file.filename == "":
-        return jsonify({"error": "No selected file"}), 400
-
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        file.save(filepath)
-
-        # Create thumbnail
-        create_thumbnail(filepath, filename)
-
-        return jsonify({
-            "message": "File uploaded successfully!",
-            "filename": filename
-        }), 200
-
-    return jsonify({"error": "File type not allowed"}), 400
-
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload an Image</title>
+</head>
+<body>
+    <h1>Upload an Image</h1>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <button type="submit">Upload</button>
+    </form>
+</body>
+</html>

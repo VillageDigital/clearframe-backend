@@ -1,6 +1,6 @@
 import os
 import json
-from flask import Flask, request, jsonify, send_from_directory, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from werkzeug.utils import secure_filename
 from PIL import Image
 from PIL.ExifTags import TAGS
@@ -8,7 +8,7 @@ from PIL.ExifTags import TAGS
 # Initialize Flask app
 app = Flask(__name__)
 
-# Define upload folders
+# Define directories
 UPLOAD_FOLDER = "uploads"
 THUMBNAIL_FOLDER = os.path.join(UPLOAD_FOLDER, "thumbnails")
 METADATA_FILE = "metadata.json"
@@ -24,15 +24,16 @@ app.config["THUMBNAIL_FOLDER"] = THUMBNAIL_FOLDER
 # Load or initialize metadata storage
 if os.path.exists(METADATA_FILE):
     with open(METADATA_FILE, "r") as f:
-        metadata_store = json.load(f)
+        try:
+            metadata_store = json.load(f)
+        except json.JSONDecodeError:
+            metadata_store = {}
 else:
     metadata_store = {}
 
-
 def allowed_file(filename):
-    """Check if file extension is allowed."""
+    """Check if the file extension is allowed."""
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 def extract_metadata(filepath):
     """Extract metadata from an image file."""
@@ -51,19 +52,29 @@ def extract_metadata(filepath):
 
     except Exception as e:
         metadata["error"] = str(e)
-    
+
     return metadata
 
+def create_thumbnail(filepath, filename, size=(200, 200)):
+    """Generate a thumbnail for the uploaded image."""
+    try:
+        with Image.open(filepath) as img:
+            img.thumbnail(size)
+            thumb_path = os.path.join(app.config["THUMBNAIL_FOLDER"], filename)
+            img.save(thumb_path)
+            return thumb_path
+    except Exception as e:
+        print(f"Thumbnail creation failed: {e}")
+        return None
 
 @app.route("/")
 def home():
     return "Hello, World! ClearFrame is live! 🚀"
 
-
 @app.route("/upload", methods=["GET", "POST"])
 def upload_file():
     if request.method == "GET":
-        return render_template("upload.html")
+        return render_template("upload.html")  # Show the upload form
 
     if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
@@ -86,16 +97,22 @@ def upload_file():
         with open(METADATA_FILE, "w") as f:
             json.dump(metadata_store, f, indent=4)
 
+        # Create thumbnail
+        create_thumbnail(filepath, filename)
+
         return jsonify({"message": "File uploaded successfully!", "filename": filename, "metadata": metadata}), 200
 
     return jsonify({"error": "File type not allowed"}), 400
-
 
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
     """Serve uploaded files."""
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
+@app.route("/thumbnails/<filename>")
+def uploaded_thumbnail(filename):  # <- This now matches gallery.html
+    """Serve thumbnails."""
+    return send_from_directory(app.config["THUMBNAIL_FOLDER"], filename)
 
 @app.route("/metadata/<filename>")
 def get_metadata(filename):
@@ -104,13 +121,13 @@ def get_metadata(filename):
         return jsonify(metadata_store[filename])
     return jsonify({"error": "Metadata not found"}), 404
 
-
 @app.route("/gallery")
 def gallery():
-    """Display all uploaded images."""
+    """Display all uploaded images with thumbnails."""
     image_files = [f for f in os.listdir(app.config["UPLOAD_FOLDER"]) if allowed_file(f)]
     return render_template("gallery.html", images=image_files)
 
-
 if __name__ == "__main__":
     app.run(debug=True)
+
+

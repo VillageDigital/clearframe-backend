@@ -9,7 +9,7 @@
     <h1>Uploaded Images</h1>
     {% for image in images %}
         <a href="{{ url_for('uploaded_file', filename=image) }}">
-            <img src="{{ url_for('uploaded_thumbnail', filename=image) }}" alt="{{ image }}" width="150">
+            <img src="{{ url_for('thumbnail_file', filename=image) }}" alt="{{ image }}" width="150">
         </a>
     {% endfor %}
 </body>
