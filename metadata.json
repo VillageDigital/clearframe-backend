@@ -1,19 +1,10 @@
 {
-    "PXL_20240516_141806976.jpg": {
+    "PXL_20240516_134737359.jpg": {
         "format": "JPEG",
         "size": [
             2268,
             4032
         ],
         "mode": "RGB",
-        "GPSInfo": {}
-    },
-    "Karma.jpg": {
-        "format": "JPEG",
-        "size": [
-            2400,
-            2400
-        ],
-        "mode": "RGB"
-    }
-}
+        "GPSInfo": {
+            "0": 
