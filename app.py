@@ -12,7 +12,7 @@ app = Flask(__name__)
 UPLOAD_FOLDER = "uploads"
 THUMBNAIL_FOLDER = os.path.join(UPLOAD_FOLDER, "thumbnails")
 METADATA_FILE = "metadata.json"
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
 # Ensure necessary folders exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -31,9 +31,11 @@ if os.path.exists(METADATA_FILE):
 else:
     metadata_store = {}
 
+
 def allowed_file(filename):
     """Check if the file extension is allowed."""
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 def extract_metadata(filepath):
     """Extract metadata from an image file."""
@@ -55,27 +57,39 @@ def extract_metadata(filepath):
 
     return metadata
 
-def create_thumbnail(filepath, filename, size=(200, 200)):
-    """Generate a thumbnail for the uploaded image."""
+
+def create_thumbnail(filepath, filename, max_size=(200, 200)):
+    """Generate a thumbnail while maintaining aspect ratio."""
     try:
         with Image.open(filepath) as img:
-            img.thumbnail(size)
+            print(f"🟡 Processing Thumbnail: {filename} | Original Size: {img.size}")  # Debug log
+
+            # Convert to RGB if needed
+            if img.mode in ("P", "RGBA"):
+                img = img.convert("RGB")
+
+            img.thumbnail(max_size, Image.Resampling.LANCZOS)
             thumb_path = os.path.join(app.config["THUMBNAIL_FOLDER"], filename)
-            img.save(thumb_path)
+
+            # Ensure the directory exists
+            os.makedirs(app.config["THUMBNAIL_FOLDER"], exist_ok=True)
+
+            img.save(thumb_path, format="JPEG", quality=85)
+            print(f"✅ Thumbnail Created: {thumb_path}")  # Debug log
             return thumb_path
     except Exception as e:
-        print(f"Thumbnail creation failed: {e}")
+        print(f"❌ Thumbnail creation failed for {filename}: {e}")  # Debug log
         return None
+
 
 @app.route("/")
 def home():
     return "Hello, World! ClearFrame is live! 🚀"
 
-@app.route("/upload", methods=["GET", "POST"])
-def upload_file():
-    if request.method == "GET":
-        return render_template("upload.html")  # Show the upload form
 
+@app.route("/upload", methods=["POST"])
+def upload_file():
+    """Handle file uploads and generate thumbnails."""
     if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
 
@@ -97,22 +111,31 @@ def upload_file():
         with open(METADATA_FILE, "w") as f:
             json.dump(metadata_store, f, indent=4)
 
-        # Create thumbnail
-        create_thumbnail(filepath, filename)
+        # Create thumbnail (with debug logging)
+        print(f"🟡 Attempting to create thumbnail for: {filename}")  # Debugging log
+        thumb_path = create_thumbnail(filepath, filename)
+
+        if thumb_path:
+            print(f"✅ Thumbnail successfully created: {thumb_path}")
+        else:
+            print(f"❌ Thumbnail creation FAILED for: {filename}")
 
         return jsonify({"message": "File uploaded successfully!", "filename": filename, "metadata": metadata}), 200
 
     return jsonify({"error": "File type not allowed"}), 400
+
 
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
     """Serve uploaded files."""
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
+
 @app.route("/thumbnails/<filename>")
-def uploaded_thumbnail(filename):  # <- This now matches gallery.html
+def uploaded_thumbnail(filename):
     """Serve thumbnails."""
     return send_from_directory(app.config["THUMBNAIL_FOLDER"], filename)
+
 
 @app.route("/metadata/<filename>")
 def get_metadata(filename):
@@ -121,13 +144,13 @@ def get_metadata(filename):
         return jsonify(metadata_store[filename])
     return jsonify({"error": "Metadata not found"}), 404
 
+
 @app.route("/gallery")
 def gallery():
     """Display all uploaded images with thumbnails."""
     image_files = [f for f in os.listdir(app.config["UPLOAD_FOLDER"]) if allowed_file(f)]
     return render_template("gallery.html", images=image_files)
 
+
 if __name__ == "__main__":
     app.run(debug=True)
-
-
