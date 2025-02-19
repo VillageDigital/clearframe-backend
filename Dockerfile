@@ -1,17 +1,31 @@
-# Use official Python runtime as a parent image
-FROM python:3.9
+# Use lightweight Python image
+FROM python:3.11-slim
 
-# Set the working directory
+# Set environment variables
+ENV PORT=8000
+ENV MAX_WORKERS=4
+ENV PYTHONUNBUFFERED=1
+ENV PILLOW_MEMORY_LIMIT=1024M  
+ENV OPENCV_VIDEOIO_PRIORITY_MSMF=0  
+
+# Install system dependencies for Pillow & OpenCV
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
 WORKDIR /app
 
-# Copy all files from current directory into the container
-COPY . /app
-
-# Install dependencies
+# Copy and install dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port 8000
+# Copy the application code
+COPY . .
+
+# Expose API port
 EXPOSE 8000
 
-# Start the FastAPI app with Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start FastAPI using Gunicorn
+CMD gunicorn main:app --workers $MAX_WORKERS --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
