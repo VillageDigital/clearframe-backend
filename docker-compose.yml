@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  backend:
+    container_name: clearframe-backend
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    restart: unless-stopped

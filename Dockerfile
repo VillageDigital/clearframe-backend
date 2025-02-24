@@ -27,5 +27,5 @@ COPY . .
 # Expose API port
 EXPOSE 8000
 
-# Start FastAPI using Gunicorn
-CMD gunicorn main:app --workers $MAX_WORKERS --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+# 🔥 FIX: Use JSON format for CMD
+CMD ["gunicorn", "main:app", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]

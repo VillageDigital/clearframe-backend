@@ -1,0 +1,29 @@
+{
+    "4bae621e-46d1-44fd-aa3f-8126222e4191": {
+        "status": "completed",
+        "results": [
+            {
+                "original": "temp/4bae621e-46d1-44fd-aa3f-8126222e4191/Bruce Goldberg.jpg",
+                "processed": "temp/4bae621e-46d1-44fd-aa3f-8126222e4191/Bruce Goldberg.jpeg"
+            }
+        ]
+    },
+    "898490fa-c391-4780-bc9f-40b596f44222": {
+        "status": "completed",
+        "results": [
+            {
+                "original": "temp/898490fa-c391-4780-bc9f-40b596f44222/Bruce Goldberg.jpg",
+                "processed": "temp/898490fa-c391-4780-bc9f-40b596f44222/Bruce Goldberg.jpeg"
+            }
+        ]
+    },
+    "3054dc80-f6e6-4aad-ad95-6675a3751384": {
+        "status": "completed",
+        "results": [
+            {
+                "original": "temp/3054dc80-f6e6-4aad-ad95-6675a3751384/Bruce Goldberg.jpg",
+                "processed": "temp/3054dc80-f6e6-4aad-ad95-6675a3751384/Bruce Goldberg.jpeg"
+            }
+        ]
+    }
+}
